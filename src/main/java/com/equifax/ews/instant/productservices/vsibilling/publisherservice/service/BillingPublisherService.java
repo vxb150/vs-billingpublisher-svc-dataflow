@@ -1,16 +1,9 @@
 package com.equifax.ews.instant.productservices.vsibilling.publisherservice.service;
 
-import com.equifax.core.barricade.cryptography.jce.JceCryptographyServices;
 import org.apache.beam.sdk.transforms.DoFn;
 
 
 public class BillingPublisherService extends DoFn<String, String> {
-    private JceCryptographyServices jceCryptographyServices;
-
-    public BillingPublisherService (JceCryptographyServices jceCryptographyServices) {
-        this.jceCryptographyServices = jceCryptographyServices;
-    }
-
 
     @ProcessElement
     public void processElement(ProcessContext ctx) {
