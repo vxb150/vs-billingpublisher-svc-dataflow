@@ -16,6 +16,7 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <version.beam.sdks>2.19.0</version.beam.sdks>
         <barricade.version>0.9.7</barricade.version>
+        <bc-jdk15on.version>1.67</bc-jdk15on.version>
         <version.maven-compiler-plugin>3.7.0</version.maven-compiler-plugin>
         <version.maven-shade-plugin>3.1.0</version.maven-shade-plugin>
         <slf4j.version>1.7.30</slf4j.version>
@@ -62,6 +63,42 @@
             <artifactId>ews-de-vs-domain-models</artifactId>
             <version>1.1.2.13</version>
         </dependency>
+
+        <!--Barricade Dependencies-->
+
+        <dependency>
+            <groupId>com.equifax.core.barricade</groupId>
+            <artifactId>cryptography-api</artifactId>
+            <version>${barricade.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.equifax.core.barricade</groupId>
+            <artifactId>cryptography-client</artifactId>
+            <version>${barricade.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.equifax.core.barricade</groupId>
+            <artifactId>cryptography-framework</artifactId>
+            <version>${barricade.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.equifax.core.barricade</groupId>
+            <artifactId>google-kms-keymanager</artifactId>
+            <version>${barricade.version}</version>
+        </dependency>
+        <!--
+        <dependency>
+            <groupId>com.equifax.core.barricade</groupId>
+            <artifactId>bouncy-castle-fips-security-provider</artifactId>
+            <version>${barricade.version}</version>
+        </dependency>-->
+
+        <dependency>
+            <groupId>com.equifax.core.barricade</groupId>
+            <artifactId>jce-cryptography</artifactId>
+            <version>${barricade.version}</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
@@ -97,6 +134,11 @@
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass>com.equifax.ews.instant.productservices.vsibilling.publisherservice.job.BillingRecordProcessor</mainClass>
+                                    <manifestEntries>
+                                        <Class-Path>bcpg-jdk15on-${bc-jdk15on.version}.jar
+                                            bcprov-jdk15on-${bc-jdk15on.version}.jar
+                                        </Class-Path>
+                                    </manifestEntries>
                                 </transformer>
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />

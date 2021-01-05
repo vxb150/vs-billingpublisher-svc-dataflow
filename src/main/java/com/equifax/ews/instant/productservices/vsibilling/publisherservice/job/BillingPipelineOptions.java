@@ -20,6 +20,7 @@ public interface BillingPipelineOptions extends PipelineOptions, StreamingOption
 
   void setInputSubscription(String inputSubscription);
 
+
   @Description(
       "The Cloud Pub/Sub topic to publish to. "
           + "The name should be in the format of "
