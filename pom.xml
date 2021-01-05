@@ -86,13 +86,16 @@
             <artifactId>google-kms-keymanager</artifactId>
             <version>${barricade.version}</version>
         </dependency>
-        <!--
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcpg-jdk15on</artifactId>
+            <version>${bc-jdk15on.version}</version>
+        </dependency>
         <dependency>
             <groupId>com.equifax.core.barricade</groupId>
             <artifactId>bouncy-castle-fips-security-provider</artifactId>
             <version>${barricade.version}</version>
-        </dependency>-->
-
+        </dependency>
         <dependency>
             <groupId>com.equifax.core.barricade</groupId>
             <artifactId>jce-cryptography</artifactId>
@@ -129,6 +132,11 @@
                                     </excludes>
                                 </filter>
                             </filters>
+                            <artifactSet>
+                                <excludes>
+                                    <exclude>org.bouncycastle:*:*:*</exclude>
+                                </excludes>
+                            </artifactSet>
                             <transformers>
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
@@ -136,6 +144,7 @@
                                     <manifestEntries>
                                         <Class-Path>bcpg-jdk15on-${bc-jdk15on.version}.jar
                                             bcprov-jdk15on-${bc-jdk15on.version}.jar
+                                            bc-fips-1.0.2.jar
                                         </Class-Path>
                                     </manifestEntries>
                                 </transformer>
