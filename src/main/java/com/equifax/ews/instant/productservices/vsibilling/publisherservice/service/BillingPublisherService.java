@@ -29,8 +29,8 @@ public class BillingPublisherService extends DoFn<String, String> {
         try {
             String ssn = "f06VpDUNUl0pjoR043Cn86T0TK0ZQnJSVy6wueopzOg0PNKn3g==";
             System.out.println("SSN:" + ssn);
-            output = decryptData(ssn);
-            System.out.println("Decrypted SSN:" + output);
+//            output = decryptData(ssn);
+//            System.out.println("Decrypted SSN:" + output);
             /*ObjectMapper mapper = new ObjectMapper();
             mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             mapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss"));

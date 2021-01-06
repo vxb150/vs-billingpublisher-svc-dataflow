@@ -25,6 +25,20 @@
             <groupId>org.apache.beam</groupId>
             <artifactId>beam-runners-google-cloud-dataflow-java</artifactId>
             <version>${version.beam.sdks}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.grpc</groupId>
+                    <artifactId>grpc-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.google.api</groupId>
+                    <artifactId>gax-grpc</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.google.api</groupId>
+                    <artifactId>gax</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.beam</groupId>
@@ -50,8 +64,13 @@
                     <artifactId>commons-logging</artifactId>
                     <groupId>commons-logging</groupId>
                 </exclusion>
+                <exclusion>
+                    <groupId>com.google.api</groupId>
+                    <artifactId>gax</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
+
         <dependency>
             <groupId>com.equifax.ews.vs.instant.transformation</groupId>
             <artifactId>billing-service-domain</artifactId>
@@ -61,6 +80,21 @@
             <groupId>com.equifax.ews.de</groupId>
             <artifactId>ews-de-vs-domain-models</artifactId>
             <version>1.1.2.13</version>
+        </dependency>
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-core</artifactId>
+            <version>1.32.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.api</groupId>
+            <artifactId>gax</artifactId>
+            <version>1.58.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.api</groupId>
+            <artifactId>gax-grpc</artifactId>
+            <version>1.58.2</version>
         </dependency>
 
         <!--Barricade Dependencies-->
@@ -85,6 +119,16 @@
             <groupId>com.equifax.core.barricade</groupId>
             <artifactId>google-kms-keymanager</artifactId>
             <version>${barricade.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.google.api</groupId>
+                    <artifactId>gax-grpc</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.google.api</groupId>
+                    <artifactId>gax</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
@@ -102,6 +146,20 @@
             <version>${barricade.version}</version>
         </dependency>
     </dependencies>
+    <!--<dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.google.api</groupId>
+                <artifactId>gax-grpc</artifactId>
+                <version>1.60.0</version>
+            </dependency>
+            <dependency>
+                <groupId>io.grpc</groupId>
+                <artifactId>grpc-core</artifactId>
+                <version>1.32.2</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>-->
     <build>
         <plugins>
             <plugin>
