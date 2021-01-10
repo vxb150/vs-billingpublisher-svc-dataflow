@@ -1,95 +1,125 @@
 package com.equifax.ews.instant.productservices.vsibilling.publisherservice.service;
 
-import com.equifax.core.barricade.cryptography.bouncycastle.BouncyCastleFipsSecurityProvider;
-import com.equifax.core.barricade.cryptography.crypto.encryption.Encryptor;
-import com.equifax.core.barricade.cryptography.crypto.util.internal.SecureRandomCSPRNG;
-import com.equifax.core.barricade.cryptography.google.GoogleKeyManager;
 import com.equifax.core.barricade.cryptography.impl.BasicCryptographyManager;
-import com.equifax.core.barricade.cryptography.jce.JceCryptographyServices;
-import com.equifax.core.barricade.cryptography.jce.encryption.JceDecryptionResponse;
-import com.equifax.core.barricade.cryptography.key.WrappedKey;
-import com.equifax.core.barricade.cryptography.util.impl.BasicEncoding;
+import com.equifax.ews.instant.productservices.vsibilling.publisherservice.config.BarricadeUtilConfig;
+import com.equifax.ews.instant.productservices.vsibilling.publisherservice.domain.EncryptResponse;
+import com.equifax.ews.instant.productservices.vsibilling.publisherservice.domain.PubSubEncryptedData;
+import com.equifax.ews.instant.productservices.vsibilling.publisherservice.domain.PubSubEvent;
+import com.equifax.ews.instant.productservices.vsibilling.publisherservice.exception.BarricadeException;
+import com.equifax.ews.instant.productservices.vsibilling.publisherservice.job.BillingPipelineOptions;
+import com.equifax.ews.instant.productservices.vsibilling.publisherservice.util.CommonUtil;
+import com.equifax.ews.vs.instant.product.service.domain.billing.BillingRequest;
+import com.equifax.ews.vs.instant.product.service.domain.billing.EventPayload;
 import org.apache.beam.sdk.transforms.DoFn;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
-import java.time.Duration;
-import java.util.Base64;
+import java.util.Optional;
 
+import static com.equifax.ews.instant.productservices.vsibilling.publisherservice.constants.BillingPublisherConstants.DEMO_EMPLOYER_TRANS;
+import static com.equifax.ews.instant.productservices.vsibilling.publisherservice.constants.BillingPublisherConstants.DEMO_VERIFIER_TRANS;
 
 public class BillingPublisherService extends DoFn<String, String> {
 
+    /** The log to output status messages to. */
+    private static final Logger logger = LoggerFactory.getLogger(BarricadeUtilConfig.class);
+    /*private BillingPipelineOptions options;
+
+    public BillingPublisherService (BillingPipelineOptions options) {
+        this.options = options;
+    }*/
+
     @ProcessElement
     public void processElement(ProcessContext ctx) {
-        System.out.println("Started Process:");
+//        logger.info("BillingPublisherService.processElement.Started Process:" + options.getInputSubscription());
         String input = ctx.element();
-        String output = input;
+        logger.info("BillingPublisherService.processElement.input:" + input);
+        String output = null;
         try {
-            String ssn = "f06VpDUNUl0pjoR043Cn86T0TK0ZQnJSVy6wueopzOg0PNKn3g==";
-            System.out.println("SSN:" + ssn);
-//            output = decryptData(ssn);
-//            System.out.println("Decrypted SSN:" + output);
-            /*ObjectMapper mapper = new ObjectMapper();
-            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-            mapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss"));
             if(input!=null){
-                BillingRequest br = mapper.readValue(input, BillingRequest.class);
-                br.setStatusBillingService("Output to Topic");
-                br.setDekReference("Dek--1846128555964109028");
-            }*/
+                BillingRequest billingRequest = CommonUtil.stringJsonToObject(input, BillingRequest.class);
+                if (billingRequest != null && billingRequest.getEventPayload() != null) {
+                    EventPayload eventPayload = billingRequest.getEventPayload();
+                    logger.info("BillingPublisherService.processElement.billingRequest:" + billingRequest);
+                    if (!isDemoTransaction(eventPayload.getBillingMethodId())) {
+                        /*
+                            1. Decrypt the PII
+                            2. Encrypt the Payload and set to PubSubEncrypted Data
+                            3. Create the PubSubEncryptedData object
+                            4. Create Billing event
+
+                        */
+                        BasicCryptographyManager basicCryptographyManager = BarricadeUtilConfig.getBasicCryptographyManager();
+                        decryptData(billingRequest, basicCryptographyManager);
+                        //TODO: Delete this log as it consists of PII
+                        logger.info("BillingPublisherService.processElement.billingRequest:" + billingRequest);
+                        String billingRequestJson = CommonUtil.objectToJson(billingRequest);
+                        //Encrypt the Payload
+                        PubSubEncryptionService pubSubEncryptionService = new PubSubEncryptionService();
+                        PubSubEncryptedData pubSubEncryptedData = pubSubEncryptionService.encrypt(
+                                billingRequestJson.getBytes(StandardCharsets.UTF_8), basicCryptographyManager);
+                        logger.info("BillingPublisherService.processElement.pubSubEncryptedData:" + pubSubEncryptedData);
+                        BillingEventBuilderService billingEventBuilderService = new BillingEventBuilderService();
+                        PubSubEvent pubSubEvent = billingEventBuilderService.getPubSubEvent(billingRequest, pubSubEncryptedData);
+                        output = CommonUtil.objectToJson(pubSubEvent);
+
+                    }
+                }
+            }
+        } catch (BarricadeException e) {
+            logger.error("BillingPublisherService.processElement: BarricadeException Occured:" + e);
         } catch (Exception e) {
-            System.out.println("Error Occured:" + e.getMessage());
+            logger.error("BillingPublisherService.processElement: Exception Occured:" + e);
         }
-        output = output + "-1";
         ctx.output(output);
+        logger.info("BillingPublisherService.processElement.End Process");
     }
 
-    private String decryptData (String barricadeCipherText) throws Exception {
-        String dekKeyString = "CAIQARoFMS4wLjAilAIKgQEKf3Byb2plY3RzL3NlYy1jcnlwdG8taWFtLW5wZS1jOGVkL2xvY2F0aW9ucy91cy9rZXlSaW5ncy9ld3MtdnMtcHJkc3ZzLWRldi1ucGUtNDc2ZF9iYXAwMDA2NjQxX2RhdGEvY3J5cHRvS2V5cy92cy1iaWxsaW5nLXN5bS1rZXkSiwEKJAD6Gcx21DG/gnMrEJU0DguBiGI2Ip3UxkNNzy9G8onISDyx+hJjKmEKFAoMnZyNyqkOxjFiIerhEKLL+vALEi8KJ24kC6xSZrOr8HgCBLwMTn1AaettYOE9fPocqBq9pwkEiWgKujq3ShDxt9rSBBoYChCm+knEu7IvN8adVbhLp4pWELSy/ZcNIAE=";
-        byte[] barricadeKeyByte = Base64.getDecoder().decode(dekKeyString.getBytes(StandardCharsets.UTF_8));
-        JceCryptographyServices jceCryptographyServices = getJceCryptographyServices();
-        BasicCryptographyManager basicCryptographyManager = getBasicCryptographyManager(jceCryptographyServices);
-        WrappedKey wrappedDekForDecryption = basicCryptographyManager.decode(new BasicEncoding(barricadeKeyByte), WrappedKey.class);
-        if(wrappedDekForDecryption == null){
-//                LOGGER.info(Map.of("Decryption Block ","No WrappedKey to decrypt"));
-            throw new Exception("No WrappedKey to decrypt");
+    private void decryptData (BillingRequest billingRequest, BasicCryptographyManager basicCryptographyManager) {
+        logger.info("BillingPublisherService.decryptData: Start");
+        String dekReference = billingRequest.getDekReference();
+        if (billingRequest.getEventPayload() != null) {
+            billingRequest.getEventPayload()
+                    .setSsn(getDecryptText(
+                            billingRequest.getEventPayload().getSsn(), dekReference, basicCryptographyManager));
+            if (billingRequest.getEventPayload().getBillingEmployers() != null
+                    && billingRequest.getEventPayload().getBillingEmployers().size() > 0) {
+                billingRequest.getEventPayload().getBillingEmployers().forEach(billingEmployer ->
+                        {
+                            billingEmployer.setFirstName(
+                                    getDecryptText(billingEmployer.getFirstName(), dekReference, basicCryptographyManager));
+                            billingEmployer.setLastName(
+                                    getDecryptText(billingEmployer.getLastName(), dekReference, basicCryptographyManager));
+                        }
+                );
+            }
         }
-        String decryptedText = null;
-        if (barricadeCipherText != null ) {
-            ByteArrayInputStream cipherIS = new ByteArrayInputStream(Base64.getDecoder().decode(barricadeCipherText.getBytes(StandardCharsets.UTF_8)));
-            ByteArrayOutputStream plainOS = new ByteArrayOutputStream();
-            Encryptor encryptor = basicCryptographyManager.getCryptographyServices().getEncryptor();
-            encryptor.decrypt(wrappedDekForDecryption, cipherIS, plainOS, null);
-            decryptedText = new String(plainOS.toByteArray(), StandardCharsets.UTF_8);
+        logger.info("BillingPublisherService.decryptData: End");
+    }
 
+    public String getDecryptText(String text, String dekRef, BasicCryptographyManager basicCryptographyManager) {
+        logger.info("BillingPublisherService.getDecryptText: Start");
+        logger.info("BillingPublisherService.getDecryptText: text:" + text);
+        logger.info("BillingPublisherService.getDecryptText: dekRef:" + dekRef);
+        BarricadeService barricadeService = new BarricadeService();
+        if (text != null) {
+            EncryptResponse response = barricadeService.decrypt(text, dekRef, basicCryptographyManager);
+            if (response != null) {
+                text = response.getValue();
+            }
         }
-        return decryptedText;
-
+        logger.info("BillingPublisherService.getDecryptText: End:" + text);
+        return text;
     }
 
-    public JceCryptographyServices getJceCryptographyServices(){
-        JceCryptographyServices jce = JceCryptographyServices.newBuilder()
-                .securityProvider(
-                        BouncyCastleFipsSecurityProvider.newBuilder()
-                                .approvedMode(true).build())
-                .build();
-        return jce;
+    private boolean isDemoTransaction (String billingMethod) {
+        if (billingMethod != null) {
+            if (billingMethod.equals(DEMO_VERIFIER_TRANS)
+                || billingMethod.equals(DEMO_EMPLOYER_TRANS)) {
+                return true;
+            }
+        }
+        return false;
     }
-
-
-    public BasicCryptographyManager getBasicCryptographyManager(JceCryptographyServices jceCryptographyServices) {
-        return BasicCryptographyManager.newBuilder().
-                registerCryptogrpahyServices(jceCryptographyServices).
-                registerKeyManager(GoogleKeyManager.newBuilder()
-                        .randomNumberGenerator(new SecureRandomCSPRNG())
-                        .lease(10000, Duration.ofMinutes(5))
-                        .applicationRetry(0, 500, 2000)
-                        .disableGrpcRetry(false)
-                        .grpcTimeout(1)
-                        .build())
-                .build();
-    }
-
 }
