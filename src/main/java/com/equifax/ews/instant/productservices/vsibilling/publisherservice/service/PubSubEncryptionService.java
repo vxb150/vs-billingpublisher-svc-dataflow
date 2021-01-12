@@ -5,6 +5,7 @@ import com.equifax.core.barricade.cryptography.crypto.encryption.Encryptor;
 import com.equifax.core.barricade.cryptography.impl.BasicCryptographyManager;
 import com.equifax.core.barricade.cryptography.key.WrappedKey;
 import com.equifax.ews.instant.productservices.vsibilling.publisherservice.config.BarricadeUtilConfig;
+import com.equifax.ews.instant.productservices.vsibilling.publisherservice.config.BillingPublisherProperties;
 import com.equifax.ews.instant.productservices.vsibilling.publisherservice.domain.PubSubEncryptedData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,13 +21,16 @@ public class PubSubEncryptionService {
     private static final Logger logger = LoggerFactory.getLogger(PubSubEncryptionService.class);
 
 
-    public PubSubEncryptedData encrypt(byte[] eventPayload, BasicCryptographyManager basicCryptographyManager) throws Exception {
+    public PubSubEncryptedData encrypt(byte[] eventPayload,
+                                       BasicCryptographyManager basicCryptographyManager,
+                                       BillingPublisherProperties billingPublisherProperties)
+                                        throws Exception {
         if (Objects.isNull(eventPayload)) {
             logger.info("No data to encrypt. Returning empty object");
             return new PubSubEncryptedData();
         }
-        WrappedKey wrappedKey = BarricadeUtilConfig.getWrappedKey(basicCryptographyManager);
-        String gcsBucketPath = BarricadeUtilConfig.getBucketPath(basicCryptographyManager, wrappedKey);
+        WrappedKey wrappedKey = BarricadeUtilConfig.getWrappedKey(basicCryptographyManager, billingPublisherProperties.getBillingGcpKeyRing());
+        String gcsBucketPath = BarricadeUtilConfig.getBucketPath(basicCryptographyManager, wrappedKey, billingPublisherProperties);
         Encryptor encryptor = BarricadeUtilConfig.getEncryptor(basicCryptographyManager);
         logger.info("PubSubEncryptionService.encrypt -- wrappedKey:" + wrappedKey);
         logger.info("PubSubEncryptionService.encrypt -- gcsBucketPath:" + gcsBucketPath);

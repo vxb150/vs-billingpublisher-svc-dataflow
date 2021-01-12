@@ -1,12 +1,7 @@
-<groupId>com.equifax.ews.instant.productservices</groupId>
-    <artifactId>vs-billingpublisher-svc</artifactId>
-	
-	
-	
-	--project=ews-vs-prdsvs-dev-npe-476d
+--project=ews-vs-prdsvs-dev-npe-476d
 --region=us-east1
 --runner=org.apache.beam.runners.dataflow.DataflowRunner
---serviceAccount=prdsvcs-dataflow@ews-vs-prdsvs-dev-npe-476d.iam.gserviceaccount.com
+--serviceAccount=vs-billingpublisher-svc-gsa@ews-vs-prdsvs-dev-npe-476d.iam.gserviceaccount.com
 --subnetwork=https://www.googleapis.com/compute/v1/projects/ews-vs-prdsvs-dev-npe-476d/regions/us-east1/subnetworks/dataflow-us-east1-125c
 --network=ews-vs-prdsvs-dev-npe-476d-internal
 --stagingLocation=gs://demo-poc/BillingPublisher/staging
@@ -14,7 +9,23 @@
 --numWorkers=1
 --maxNumWorkers=3
 --workerMachineType=n1-standard-2
---filesToStage=target/vs-billingpublisher-svc-dataflow-1.0.0-SNAPSHOT.jar
---inputSubscription=projects/ews-vs-prdsvs-dev-npe-476d/subscriptions/vsi-billing-publisher-demo
---outputTopic=projects/ews-vs-prdsvs-dev-npe-476d/topics/vsi-billing-publisher-output-demo
+--filesToStage=target/vs-billingpublisher-svc-dataflow-1.0.0-SNAPSHOT.jar,target/bc-fips-1.0.2.jar,target/bcpg-jdk15on-1.67.jar,target/bcprov-jdk15on-1.67.jar,target/grpc-core-1.32.2.jar,target/grpc-okhttp-1.27.2.jar
+--inputSubscription=projects/ews-vs-prdsvs-dev-npe-476d/subscriptions/vs-billing-publsiher-subscription
+--outputTopic=projects/ews-de-de-api-dev-npe-b873/topics/ews-de-event-topic-dev
 --usePublicIps=false
+--billingGcpKeyRing=projects/sec-crypto-iam-npe-c8ed/locations/us/keyRings/ews-vs-prdsvs-dev-npe-476d_bap0006641_data/cryptoKeys/vs-billing-sym-key
+--pubsubGcpKeyRing=projects/sec-crypto-iam-npe-c8ed/locations/us-east1/keyRings/ews-ss-de-npe-1c88_wfs_data_management_services/cryptoKeys/ews-ss-de-npe-event-driven-services--asymmetric-encrypt/cryptoKeyVersions/1
+--gcpBucket=ews-de-vs-transient-messages-dev
+--gcpBucketFileName=vs-billing/ews-ss-de-npe-event-driven-services--asymmetric-encrypt_1_%s.key
+--pubsubProjectId=ews-de-de-api-dev-npe-b873
+--datasourceProjectId=ews-vs-prdsvs-dev-npe-476d
+--datasourceNamespace=vsiBillingService-dev
+--specVersion=v1.0
+--tribeName=Instant & Government
+--eventDomain=VERIFICATION_SERVICES
+--clientTransactionId=N/A
+--eventType=BUSINESS_EVENT
+--eventSource=API
+--eventGenerator=N/A
+--eventTrigger=N/A
+--eventName=VS_BILLING_EVENT

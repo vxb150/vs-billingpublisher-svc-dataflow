@@ -76,15 +76,21 @@ public class BarricadeUtilConfig {
         return basicCryptographyManager.getCryptographyServices().getEncryptor();
     }
 
-    public static String getBucketPath(BasicCryptographyManager basicCryptographyManager, WrappedKey wrappedKey) throws Exception {
+    public static String getBucketPath(
+                BasicCryptographyManager basicCryptographyManager,
+                WrappedKey wrappedKey,
+                BillingPublisherProperties billingPublisherProperties)
+            throws Exception {
         logger.info("BarricadeUtilConfig.getBucketPath -- wrappedKey:" + wrappedKey);
-        byte[] bytes = hybridWrappedKey(basicCryptographyManager, wrappedKey);
+        logger.info("BarricadeUtilConfig.getBucketPath -- billingPublisherProperties:" + billingPublisherProperties);
+        PublicKey publicKey = getPublicKey(basicCryptographyManager, billingPublisherProperties.getPubsubGcpKeyRing());
+        byte[] bytes = hybridWrappedKey(basicCryptographyManager, wrappedKey, publicKey);
         String uUID= UUID.randomUUID().toString();
-        String bucketKeyPath = String.format("vs-billing/ews-ss-de-npe-event-driven-services--asymmetric-encrypt_1_%s.key", uUID);
+        String bucketKeyPath = String.format(billingPublisherProperties.getGcpBucketFileName(), uUID);
 
         logger.info("BarricadeUtilConfig.getBucketPath -- bucketKeyPath:" + bucketKeyPath);
-        Storage storage = StorageOptions.newBuilder().setProjectId("ews-de-de-api-dev-npe-b873").build().getService();
-        BlobId blobId = BlobId.of("ews-de-vs-transient-messages-dev", bucketKeyPath);
+        Storage storage = StorageOptions.newBuilder().setProjectId(billingPublisherProperties.getPubsubProjectId()).build().getService();
+        BlobId blobId = BlobId.of(billingPublisherProperties.getGcpBucket(), bucketKeyPath);
         BlobInfo blobInfo = BlobInfo.newBuilder(blobId).build();
         Blob storageDetails = storage.create(blobInfo, bytes);
         String gcpBucketPath = "gs://" + storageDetails.getBlobId().getBucket() + "/" + storageDetails.getBlobId().getName();
@@ -92,25 +98,27 @@ public class BarricadeUtilConfig {
         return gcpBucketPath;
     }
 
-    public static byte[] hybridWrappedKey(BasicCryptographyManager basicCryptographyManager, WrappedKey wrappedKey){
+    public static byte[] hybridWrappedKey(BasicCryptographyManager basicCryptographyManager, WrappedKey wrappedKey, PublicKey publicKey){
         KeyManager keyManager = basicCryptographyManager.getKeyManager();
-        HybridWrappedKey hybridWrappedKey = keyManager.rewrap(wrappedKey, getPublicKey(basicCryptographyManager));
+        HybridWrappedKey hybridWrappedKey = keyManager.rewrap(wrappedKey, publicKey);
         Encoding enc = hybridWrappedKey.getEncoding();
         byte[] bytes = enc.getEncodedValue();
         logger.info("BarricadeUtilConfig.hybridWrappedKey -- bytes:" + bytes);
         return bytes;
     }
-    public static WrappedKey getWrappedKey (BasicCryptographyManager basicCryptographyManager){
+    public static WrappedKey getWrappedKey (BasicCryptographyManager basicCryptographyManager, String googleResourceId){
+        logger.info("PubSubEncryptionService.encrypt -- Key Ring:" + googleResourceId);
         KeyManager keyManager = basicCryptographyManager.getKeyManager(1L, new SemanticVersion(1, 0, "0"));
-        KeyReference symKeyReference = keyManager.getKeyReference("projects/sec-crypto-iam-npe-c8ed/locations/us/keyRings/ews-vs-prdsvs-dev-npe-476d_bap0006641_data/cryptoKeys/vs-billing-sym-key", null);
+        KeyReference symKeyReference = keyManager.getKeyReference(googleResourceId, null);
         WrappedKey wrappedKey = keyManager.generateKey(symKeyReference, 32);
         logger.info("PubSubEncryptionService.encrypt -- wrappedKey:" + wrappedKey);
         return wrappedKey;
     }
 
-    public static PublicKey getPublicKey(BasicCryptographyManager basicCryptographyManager) {
+    public static PublicKey getPublicKey(BasicCryptographyManager basicCryptographyManager, String pubsubResourceId) {
+        logger.info("BarricadeUtilConfig.getPublicKey -- pubsubResourceId:" + pubsubResourceId);
         KeyManager keyManager = basicCryptographyManager.getKeyManager();
-        KeyReference pubKeyReference = keyManager.getKeyReference("projects/sec-crypto-iam-npe-c8ed/locations/us-east1/keyRings/ews-ss-de-npe-1c88_wfs_data_management_services/cryptoKeys/ews-ss-de-npe-event-driven-services--asymmetric-encrypt/cryptoKeyVersions/1", null);
+        KeyReference pubKeyReference = keyManager.getKeyReference(pubsubResourceId, null);
         PublicKey publicKey = keyManager.loadPublicKey(pubKeyReference);
         logger.info("BarricadeUtilConfig.getPublicKey -- publicKey:" + publicKey);
         return publicKey;

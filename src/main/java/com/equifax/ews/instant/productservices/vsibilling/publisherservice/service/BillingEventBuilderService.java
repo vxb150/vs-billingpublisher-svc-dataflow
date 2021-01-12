@@ -13,6 +13,7 @@ import com.equifax.ews.de.event.domain.vsbillingevent.SupplierPartner;
 import com.equifax.ews.de.event.domain.vsbillingevent.Transaction;
 import com.equifax.ews.de.event.domain.vsbillingevent.Verifier;
 import com.equifax.ews.de.event.domain.vslegacybillingevent.Record;
+import com.equifax.ews.instant.productservices.vsibilling.publisherservice.config.BillingPublisherProperties;
 import com.equifax.ews.instant.productservices.vsibilling.publisherservice.domain.PubSubEncryptedData;
 import com.equifax.ews.instant.productservices.vsibilling.publisherservice.domain.PubSubEvent;
 import com.equifax.ews.instant.productservices.vsibilling.publisherservice.util.CommonUtil;
@@ -54,26 +55,28 @@ public class BillingEventBuilderService {
      * @param pubSubEncryptedData
      * @return PubSubEvent
      */
-   public PubSubEvent getPubSubEvent (BillingRequest billingRequest, PubSubEncryptedData pubSubEncryptedData) {
+   public PubSubEvent getPubSubEvent (BillingRequest billingRequest,
+                                      PubSubEncryptedData pubSubEncryptedData,
+                                      BillingPublisherProperties billingPublisherProperties) {
         logger.info("BillingEventBuilderService.getPubSubEvent.start");
         String uniqueId = UUID.randomUUID().toString();
         PubSubEvent pubSubEvent = new PubSubEvent();
-        pubSubEvent.setSpecVersion("v1.0");
+        pubSubEvent.setSpecVersion(billingPublisherProperties.getSpecVersion());
         pubSubEvent.setBusinessUnit(billingRequest.getAppName());
-        pubSubEvent.setTribeName("Instant & Government");
-        pubSubEvent.setDomain("VERIFICATION_SERVICES");
+        pubSubEvent.setTribeName(billingPublisherProperties.getTribeName());
+        pubSubEvent.setDomain(billingPublisherProperties.getEventDomain());
         pubSubEvent.setSubDomain(billingRequest.getProduct());
         pubSubEvent.setAppId(billingRequest.getAppId());
         pubSubEvent.setAppName(billingRequest.getAppName());
         pubSubEvent.setPublisherId(uniqueId);
         pubSubEvent.setAppTraceId(uniqueId);
-        pubSubEvent.setClientTransactionId("N/A");
+        pubSubEvent.setClientTransactionId(billingPublisherProperties.getClientTransactionId());
         pubSubEvent.setCorrelationId(billingRequest.getCorrelationId());
-        pubSubEvent.setEventType("BUSINESS_EVENT");
-        pubSubEvent.setEventSource("API");
-        pubSubEvent.setEventGenerator("N/A");
-        pubSubEvent.setEventTrigger("N/A");
-        pubSubEvent.setEventName("VS_BILLING_EVENT");
+        pubSubEvent.setEventType(billingPublisherProperties.getEventType());
+        pubSubEvent.setEventSource(billingPublisherProperties.getEventSource());
+        pubSubEvent.setEventGenerator(billingPublisherProperties.getEventGenerator());
+        pubSubEvent.setEventTrigger(billingPublisherProperties.getEventTrigger());
+        pubSubEvent.setEventName(billingPublisherProperties.getEventName());
         pubSubEvent.setEventTime(CommonUtil.getCurrentUTCDateString());
         pubSubEvent.setDekKeyPath(pubSubEncryptedData.getGcsBucketPath());
         pubSubEvent.setEncryptionMetadata(pubSubEncryptedData.getEncryptionMetadata());

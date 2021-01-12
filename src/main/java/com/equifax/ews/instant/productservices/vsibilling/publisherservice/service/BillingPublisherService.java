@@ -2,6 +2,7 @@ package com.equifax.ews.instant.productservices.vsibilling.publisherservice.serv
 
 import com.equifax.core.barricade.cryptography.impl.BasicCryptographyManager;
 import com.equifax.ews.instant.productservices.vsibilling.publisherservice.config.BarricadeUtilConfig;
+import com.equifax.ews.instant.productservices.vsibilling.publisherservice.config.BillingPublisherProperties;
 import com.equifax.ews.instant.productservices.vsibilling.publisherservice.domain.EncryptResponse;
 import com.equifax.ews.instant.productservices.vsibilling.publisherservice.domain.PubSubEncryptedData;
 import com.equifax.ews.instant.productservices.vsibilling.publisherservice.domain.PubSubEvent;
@@ -15,7 +16,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Optional;
 
 import static com.equifax.ews.instant.productservices.vsibilling.publisherservice.constants.BillingPublisherConstants.DEMO_EMPLOYER_TRANS;
 import static com.equifax.ews.instant.productservices.vsibilling.publisherservice.constants.BillingPublisherConstants.DEMO_VERIFIER_TRANS;
@@ -24,16 +24,13 @@ public class BillingPublisherService extends DoFn<String, String> {
 
     /** The log to output status messages to. */
     private static final Logger logger = LoggerFactory.getLogger(BarricadeUtilConfig.class);
-    /*private BillingPipelineOptions options;
-
-    public BillingPublisherService (BillingPipelineOptions options) {
-        this.options = options;
-    }*/
 
     @ProcessElement
     public void processElement(ProcessContext ctx) {
-//        logger.info("BillingPublisherService.processElement.Started Process:" + options.getInputSubscription());
+        logger.info("BillingPublisherService.processElement.Started Process:");
         String input = ctx.element();
+        BillingPipelineOptions options = ctx.getPipelineOptions().as(BillingPipelineOptions.class);
+        BillingPublisherProperties billingProperties = constructProperties(options);
         logger.info("BillingPublisherService.processElement.input:" + input);
         String output = null;
         try {
@@ -43,25 +40,16 @@ public class BillingPublisherService extends DoFn<String, String> {
                     EventPayload eventPayload = billingRequest.getEventPayload();
                     logger.info("BillingPublisherService.processElement.billingRequest:" + billingRequest);
                     if (!isDemoTransaction(eventPayload.getBillingMethodId())) {
-                        /*
-                            1. Decrypt the PII
-                            2. Encrypt the Payload and set to PubSubEncrypted Data
-                            3. Create the PubSubEncryptedData object
-                            4. Create Billing event
-
-                        */
                         BasicCryptographyManager basicCryptographyManager = BarricadeUtilConfig.getBasicCryptographyManager();
                         decryptData(billingRequest, basicCryptographyManager);
-                        //TODO: Delete this log as it consists of PII
-                        logger.info("BillingPublisherService.processElement.billingRequest:" + billingRequest);
                         String billingRequestJson = CommonUtil.objectToJson(billingRequest);
                         //Encrypt the Payload
                         PubSubEncryptionService pubSubEncryptionService = new PubSubEncryptionService();
                         PubSubEncryptedData pubSubEncryptedData = pubSubEncryptionService.encrypt(
-                                billingRequestJson.getBytes(StandardCharsets.UTF_8), basicCryptographyManager);
+                                billingRequestJson.getBytes(StandardCharsets.UTF_8), basicCryptographyManager, billingProperties);
                         logger.info("BillingPublisherService.processElement.pubSubEncryptedData:" + pubSubEncryptedData);
                         BillingEventBuilderService billingEventBuilderService = new BillingEventBuilderService();
-                        PubSubEvent pubSubEvent = billingEventBuilderService.getPubSubEvent(billingRequest, pubSubEncryptedData);
+                        PubSubEvent pubSubEvent = billingEventBuilderService.getPubSubEvent(billingRequest, pubSubEncryptedData, billingProperties);
                         output = CommonUtil.objectToJson(pubSubEvent);
 
                     }
@@ -121,5 +109,25 @@ public class BillingPublisherService extends DoFn<String, String> {
             }
         }
         return false;
+    }
+
+    private BillingPublisherProperties constructProperties (BillingPipelineOptions options) {
+        return new BillingPublisherProperties(
+                options.getBillingGcpKeyRing(),
+                options.getPubsubGcpKeyRing(),
+                options.getGcpBucket(),
+                options.getGcpBucketFileName(),
+                options.getPubsubProjectId(),
+                options.getDatasourceNamespace(),
+                options.getDatasourceProjectId(),
+                options.getSpecVersion(),
+                options.getTribeName(),
+                options.getEventDomain(),
+                options.getClientTransactionId(),
+                options.getEventType(),
+                options.getEventSource(),
+                options.getEventGenerator(),
+                options.getEventTrigger(),
+                options.getEventName());
     }
 }

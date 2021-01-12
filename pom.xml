@@ -10,44 +10,263 @@
     <name>vs-billingpublisher-svc-dataflow</name>
 
     <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-        <version.beam.sdks>2.19.0</version.beam.sdks>
-        <barricade.version>0.9.7</barricade.version>
-        <bc-jdk15on.version>1.67</bc-jdk15on.version>
-        <version.maven-compiler-plugin>3.7.0</version.maven-compiler-plugin>
-        <version.maven-shade-plugin>3.1.0</version.maven-shade-plugin>
-        <slf4j.version>1.7.30</slf4j.version>
-        <spring-cloud-gcp.version>1.2.5.RELEASE</spring-cloud-gcp.version>
-    </properties>
+<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+<maven.compiler.source>1.8</maven.compiler.source>
+<maven.compiler.target>1.8</maven.compiler.target>
+<version.beam.sdks>2.19.0</version.beam.sdks>
+<barricade.version>0.9.7</barricade.version>
+<bc-jdk15on.version>1.67</bc-jdk15on.version>
+<version.maven-compiler-plugin>3.7.0</version.maven-compiler-plugin>
+<version.maven-shade-plugin>3.1.0</version.maven-shade-plugin>
+<slf4j.version>1.7.30</slf4j.version>
+<spring-cloud-gcp.version>1.2.5.RELEASE</spring-cloud-gcp.version>
+</properties>
+<dependencies>
+<dependency>
+    <groupId>org.apache.beam</groupId>
+    <artifactId>beam-runners-google-cloud-dataflow-java</artifactId>
+    <version>${version.beam.sdks}</version>
+    <exclusions>
+        <exclusion>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-core</artifactId>
+        </exclusion>
+        <exclusion>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-okhttp</artifactId>
+        </exclusion>
+        <exclusion>
+            <groupId>com.google.apis</groupId>
+            <artifactId>google-api-services-storage</artifactId>
+        </exclusion>
+        <exclusion>
+            <groupId>com.google.api</groupId>
+            <artifactId>gax-grpc</artifactId>
+        </exclusion>
+        <exclusion>
+            <groupId>com.google.api</groupId>
+            <artifactId>gax</artifactId>
+        </exclusion>
+    </exclusions>
+</dependency>
+<dependency>
+    <groupId>org.apache.beam</groupId>
+    <artifactId>beam-runners-direct-java</artifactId>
+    <version>${version.beam.sdks}</version>
+</dependency>
+<dependency>
+    <groupId>org.slf4j</groupId>
+    <artifactId>slf4j-api</artifactId>
+    <version>${slf4j.version}</version>
+</dependency>
+<dependency>
+    <groupId>org.slf4j</groupId>
+    <artifactId>slf4j-simple</artifactId>
+    <version>${slf4j.version}</version>
+</dependency>
+<dependency>
+    <groupId>com.google.cloud</groupId>
+    <artifactId>google-cloud-datastore</artifactId>
+    <version>1.105.0</version>
+    <exclusions>
+        <exclusion>
+            <artifactId>commons-logging</artifactId>
+            <groupId>commons-logging</groupId>
+        </exclusion>
+        <exclusion>
+            <groupId>com.google.api</groupId>
+            <artifactId>gax</artifactId>
+        </exclusion>
+        <exclusion>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-api</artifactId>
+        </exclusion>
+    </exclusions>
+</dependency>
+<dependency>
+    <groupId>com.google.cloud</groupId>
+    <artifactId>google-cloud-storage</artifactId>
+    <version>1.112.0</version>
+</dependency>
+<dependency>
+    <groupId>com.google.apis</groupId>
+    <artifactId>google-api-services-storage</artifactId>
+    <version>v1-rev20200727-1.30.10</version>
+</dependency>
+<dependency>
+    <groupId>com.equifax.ews.vs.instant.transformation</groupId>
+    <artifactId>billing-service-domain</artifactId>
+    <version>1.0.5</version>
+</dependency>
+<dependency>
+    <groupId>com.equifax.ews.de</groupId>
+    <artifactId>ews-de-vs-domain-models</artifactId>
+    <version>1.1.2.13</version>
+</dependency>
+<dependency>
+    <groupId>io.grpc</groupId>
+    <artifactId>grpc-core</artifactId>
+    <version>1.32.2</version>
+</dependency>
+<dependency>
+    <groupId>io.grpc</groupId>
+    <artifactId>grpc-okhttp</artifactId>
+    <version>1.27.2</version>
+    <exclusions>
+        <exclusion>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-core</artifactId>
+        </exclusion>
+    </exclusions>
+</dependency>
+<dependency>
+    <groupId>com.google.api</groupId>
+    <artifactId>gax</artifactId>
+    <version>1.58.2</version>
+</dependency>
+<dependency>
+    <groupId>com.google.api</groupId>
+    <artifactId>gax-grpc</artifactId>
+    <version>1.58.2</version>
+</dependency>
+
+
+<!--Barricade Dependencies-->
+
+<dependency>
+    <groupId>com.equifax.core.barricade</groupId>
+    <artifactId>cryptography-api</artifactId>
+    <version>${barricade.version}</version>
+</dependency>
+<dependency>
+    <groupId>com.equifax.core.barricade</groupId>
+    <artifactId>cryptography-client</artifactId>
+    <version>${barricade.version}</version>
+</dependency>
+<dependency>
+    <groupId>com.equifax.core.barricade</groupId>
+    <artifactId>cryptography-framework</artifactId>
+    <version>${barricade.version}</version>
+</dependency>
+
+<dependency>
+    <groupId>com.equifax.core.barricade</groupId>
+    <artifactId>google-kms-keymanager</artifactId>
+    <version>${barricade.version}</version>
+    <exclusions>
+        <exclusion>
+            <groupId>com.google.api</groupId>
+            <artifactId>gax-grpc</artifactId>
+        </exclusion>
+        <exclusion>
+            <groupId>com.google.api</groupId>
+            <artifactId>gax</artifactId>
+        </exclusion>
+    </exclusions>
+</dependency>
+<dependency>
+    <groupId>org.bouncycastle</groupId>
+    <artifactId>bcpg-jdk15on</artifactId>
+    <version>${bc-jdk15on.version}</version>
+</dependency>
+<dependency>
+    <groupId>com.equifax.core.barricade</groupId>
+    <artifactId>bouncy-castle-fips-security-provider</artifactId>
+    <version>${barricade.version}</version>
+</dependency>
+<dependency>
+    <groupId>com.equifax.core.barricade</groupId>
+    <artifactId>jce-cryptography</artifactId>
+    <version>${barricade.version}</version>
+</dependency>
+</dependencies>
+        <!--<dependencyManagement>
+            <dependencies>
+                <dependency>
+                    <groupId>com.google.cloud</groupId>
+                    <artifactId>libraries-bom</artifactId>
+                    <version>3.4.0</version>
+                    <type>pom</type>
+                    <scope>import</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.springframework.cloud</groupId>
+                    <artifactId>spring-cloud-gcp-dependencies</artifactId>
+                    <version>${spring-cloud-gcp.version}</version>
+                    <type>pom</type>
+                    <scope>import</scope>
+                </dependency>
+            </dependencies>
+        </dependencyManagement>-->
+<build>
+<plugins>
+    <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>${version.maven-compiler-plugin}</version>
+        <configuration>
+            <source>1.8</source>
+            <target>1.8</target>
+        </configuration>
+    </plugin>
+    <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>${version.maven-shade-plugin}</version>
+        <executions>
+            <execution>
+                <phase>package</phase>
+                <goals>
+                    <goal>shade</goal>
+                </goals>
+                <configuration>
+                    <filters>
+                        <filter>
+                            <artifact>*:*</artifact>
+                            <excludes>
+                                <exclude>META-INF/LICENSE</exclude>
+                                <exclude>META-INF/*.SF</exclude>
+                                <exclude>META-INF/*.DSA</exclude>
+                                <exclude>META-INF/*.RSA</exclude>
+                            </excludes>
+                        </filter>
+                    </filters>
+                    <artifactSet>
+                        <excludes>
+                            <exclude>org.bouncycastle:*:*:*</exclude>
+                        </excludes>
+                    </artifactSet>
+                    <transformers>
+                        <transformer
+                                implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                            <mainClass>com.equifax.ews.instant.productservices.vsibilling.publisherservice.job.BillingRecordProcessorTest</mainClass>
+                            <manifestEntries>
+                                <Class-Path>bcpg-jdk15on-${bc-jdk15on.version}.jar
+                                    bcprov-jdk15on-${bc-jdk15on.version}.jar
+                                    bc-fips-1.0.2.jar
+                                    grpc-core-1.32.2.jar
+                                    grpc-okhttp-1.27.2.jar
+                                </Class-Path>
+                            </manifestEntries>
+                        </transformer>
+                        <transformer
+                                implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                    </transformers>
+                </configuration>
+            </execution>
+        </executions>
+    </plugin>
+</plugins>
+</build>
+<profiles>
+<profile>
+    <id>dataflow-runner</id>
+    <!-- Makes the DataflowRunner available when running a pipeline. -->
     <dependencies>
         <dependency>
             <groupId>org.apache.beam</groupId>
             <artifactId>beam-runners-google-cloud-dataflow-java</artifactId>
-            <version>${version.beam.sdks}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>io.grpc</groupId>
-                    <artifactId>grpc-core</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.grpc</groupId>
-                    <artifactId>grpc-okhttp</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.google.apis</groupId>
-                    <artifactId>google-api-services-storage</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.google.api</groupId>
-                    <artifactId>gax-grpc</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.google.api</groupId>
-                    <artifactId>gax</artifactId>
-                </exclusion>
-            </exclusions>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.beam</groupId>
@@ -55,231 +274,12 @@
             <version>${version.beam.sdks}</version>
         </dependency>
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>${slf4j.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-            <version>${slf4j.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.google.cloud</groupId>
-            <artifactId>google-cloud-datastore</artifactId>
-            <version>1.105.0</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>commons-logging</artifactId>
-                    <groupId>commons-logging</groupId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.google.api</groupId>
-                    <artifactId>gax</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.grpc</groupId>
-                    <artifactId>grpc-api</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>com.google.cloud</groupId>
-            <artifactId>google-cloud-storage</artifactId>
-            <version>1.112.0</version>
-        </dependency>
-        <dependency>
-            <groupId>com.google.apis</groupId>
-            <artifactId>google-api-services-storage</artifactId>
-            <version>v1-rev20200727-1.30.10</version>
-        </dependency>
-        <dependency>
-            <groupId>com.equifax.ews.vs.instant.transformation</groupId>
-            <artifactId>billing-service-domain</artifactId>
-            <version>1.0.5</version>
-        </dependency>
-        <dependency>
-            <groupId>com.equifax.ews.de</groupId>
-            <artifactId>ews-de-vs-domain-models</artifactId>
-            <version>1.1.2.13</version>
-        </dependency>
-        <dependency>
-            <groupId>io.grpc</groupId>
-            <artifactId>grpc-core</artifactId>
-            <version>1.32.2</version>
-        </dependency>
-        <dependency>
-            <groupId>io.grpc</groupId>
-            <artifactId>grpc-okhttp</artifactId>
-            <version>1.27.2</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>io.grpc</groupId>
-                    <artifactId>grpc-core</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>com.google.api</groupId>
-            <artifactId>gax</artifactId>
-            <version>1.58.2</version>
-        </dependency>
-        <dependency>
-            <groupId>com.google.api</groupId>
-            <artifactId>gax-grpc</artifactId>
-            <version>1.58.2</version>
+            <groupId>org.apache.beam</groupId>
+            <artifactId>beam-sdks-java-io-google-cloud-platform</artifactId>
+            <version>${version.beam.sdks}</version>
         </dependency>
 
-
-        <!--Barricade Dependencies-->
-
-        <dependency>
-            <groupId>com.equifax.core.barricade</groupId>
-            <artifactId>cryptography-api</artifactId>
-            <version>${barricade.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.equifax.core.barricade</groupId>
-            <artifactId>cryptography-client</artifactId>
-            <version>${barricade.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.equifax.core.barricade</groupId>
-            <artifactId>cryptography-framework</artifactId>
-            <version>${barricade.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.equifax.core.barricade</groupId>
-            <artifactId>google-kms-keymanager</artifactId>
-            <version>${barricade.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.google.api</groupId>
-                    <artifactId>gax-grpc</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.google.api</groupId>
-                    <artifactId>gax</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.bouncycastle</groupId>
-            <artifactId>bcpg-jdk15on</artifactId>
-            <version>${bc-jdk15on.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.equifax.core.barricade</groupId>
-            <artifactId>bouncy-castle-fips-security-provider</artifactId>
-            <version>${barricade.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.equifax.core.barricade</groupId>
-            <artifactId>jce-cryptography</artifactId>
-            <version>${barricade.version}</version>
-        </dependency>
     </dependencies>
-    <!--<dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>com.google.cloud</groupId>
-                <artifactId>libraries-bom</artifactId>
-                <version>3.4.0</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework.cloud</groupId>
-                <artifactId>spring-cloud-gcp-dependencies</artifactId>
-                <version>${spring-cloud-gcp.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>-->
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>${version.maven-compiler-plugin}</version>
-                <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>${version.maven-shade-plugin}</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <filters>
-                                <filter>
-                                    <artifact>*:*</artifact>
-                                    <excludes>
-                                        <exclude>META-INF/LICENSE</exclude>
-                                        <exclude>META-INF/*.SF</exclude>
-                                        <exclude>META-INF/*.DSA</exclude>
-                                        <exclude>META-INF/*.RSA</exclude>
-                                    </excludes>
-                                </filter>
-                            </filters>
-                            <artifactSet>
-                                <excludes>
-                                    <exclude>org.bouncycastle:*:*:*</exclude>
-                                </excludes>
-                            </artifactSet>
-                            <transformers>
-                                <transformer
-                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>com.equifax.ews.instant.productservices.vsibilling.publisherservice.job.BillingRecordProcessorTest</mainClass>
-                                    <manifestEntries>
-                                        <Class-Path>bcpg-jdk15on-${bc-jdk15on.version}.jar
-                                            bcprov-jdk15on-${bc-jdk15on.version}.jar
-                                            bc-fips-1.0.2.jar
-                                            grpc-core-1.32.2.jar
-                                            grpc-okhttp-1.27.2.jar
-                                        </Class-Path>
-                                    </manifestEntries>
-                                </transformer>
-                                <transformer
-                                        implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
-                            </transformers>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
-    <profiles>
-        <profile>
-            <id>dataflow-runner</id>
-            <!-- Makes the DataflowRunner available when running a pipeline. -->
-            <dependencies>
-                <dependency>
-                    <groupId>org.apache.beam</groupId>
-                    <artifactId>beam-runners-google-cloud-dataflow-java</artifactId>
-                    <scope>runtime</scope>
-                </dependency>
-                <dependency>
-                    <groupId>org.apache.beam</groupId>
-                    <artifactId>beam-runners-direct-java</artifactId>
-                    <version>${version.beam.sdks}</version>
-                </dependency>
-                <dependency>
-                    <groupId>org.apache.beam</groupId>
-                    <artifactId>beam-sdks-java-io-google-cloud-platform</artifactId>
-                    <version>${version.beam.sdks}</version>
-                </dependency>
-
-            </dependencies>
-        </profile>
-    </profiles>
+</profile>
+</profiles>
 </project>

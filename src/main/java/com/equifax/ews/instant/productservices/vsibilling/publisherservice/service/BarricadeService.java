@@ -37,9 +37,6 @@ public class BarricadeService {
             ByteArrayInputStream cipherIS = new ByteArrayInputStream(Base64.getDecoder().decode(barricadeCipherText.getBytes(StandardCharsets.UTF_8)));
             ByteArrayOutputStream plainOS = new ByteArrayOutputStream();
             Encryptor encryptor = basicCryptographyManager.getCryptographyServices().getEncryptor();
-            logger.info("BarricadeService.decrypt -- cipherIS:" + cipherIS);
-            logger.info("BarricadeService.decrypt -- plainOS:" + plainOS);
-            logger.info("BarricadeService.decrypt -- encryptor:" + encryptor);
             encryptor.decrypt(wrappedDekForDecryption, cipherIS, plainOS, null);
             decryptedText = new String(plainOS.toByteArray(), StandardCharsets.UTF_8);
             encryptResponse.setValue(decryptedText);
